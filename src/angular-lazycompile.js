@@ -9,7 +9,8 @@ angular.module('angular-lazycompile', [
       lazyCompile: '=',
       lazyDecode: '=',
       lazyTimeout: '=',
-      lazyTimeoutDur: '='
+      lazyTimeoutDur: '=',
+      lazyPlaceholder: '=',
     },
     replace: true,
     link: function postLink(scope, element, attrs) {
@@ -19,6 +20,17 @@ angular.module('angular-lazycompile', [
           rendered     = false,
           timeoutVal   = scope.lazyTimeout,
           timeoutDur   = scope.lazyTimeoutDur || 1000;
+
+      // Run flag
+      var lazyRan = scope.lazyRan || false;
+
+      // Inserts a placeholder
+      if (!lazyRan && scope.lazyPlaceholder) {
+        // Compile the placeholder
+        var placeholderContent = angular.element(scope.lazyPlaceholder);
+        // Append inside our element
+        element.append(placeholderContent);
+      }
 
       // Compiles variable set in lazy-compile 
       var compile = function(value) {
@@ -51,6 +63,7 @@ angular.module('angular-lazycompile', [
           }
         }
       }
+
       // Set Watch
       voidCompile = scope.$watch('lazyCompile', function(value, oldVal) {
         var doRender = !rendered && value && value !== "false" && value !== oldVal;
@@ -58,6 +71,7 @@ angular.module('angular-lazycompile', [
           compile(value);
         }
       });
+
       // if lazy-timeout is set, start timeout
       if(timeoutVal) {
         timeout = $timeout(function() {
@@ -66,6 +80,9 @@ angular.module('angular-lazycompile', [
           }
         }, parseInt(timeoutDur));
       }
+
+      // Set our flag
+      scope.lazyRan = true;
     }
   }
 }]);
